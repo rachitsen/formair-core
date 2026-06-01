@@ -1,8 +1,17 @@
-import { GalleryVerticalEnd } from "lucide-react"
+"use client";
 
-import { SignupForm } from "~/components/signup-form"
+import { useEffect } from "react";
+import { useTheme } from "next-themes";
+import { GalleryVerticalEnd } from "lucide-react";
+
+import { SignupForm } from "~/components/signup-form";
 
 export default function SignupPage() {
+  const { setTheme } = useTheme();
+  useEffect(() => {
+    setTheme("dark");
+  }, [setTheme]);
+
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
       <div className="flex w-full max-w-sm flex-col gap-6">
@@ -15,5 +24,5 @@ export default function SignupPage() {
         <SignupForm />
       </div>
     </div>
-  )
+  );
 }

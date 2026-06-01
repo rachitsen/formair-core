@@ -1,6 +1,7 @@
 "use client"
 import { cn } from "~/lib/utils"
 import { Button } from "~/components/ui/button"
+import { useRouter } from "next/navigation"
 import {
   Card,
   CardContent,
@@ -23,19 +24,23 @@ export function SignupForm({
 }: React.ComponentProps<"div">) {
 
   const {createUserWithEmailAndPasswordAsync} = useSignup()
+  const router = useRouter();
   type FormData = {
     fullName: string
     email: string
     password: string
     confirmPassword: string
   }
-
+  
   const { register, handleSubmit } = useForm<FormData>()
 
   async function onSubmit(values: FormData){
     console.log("Signup form values:", values)
    const {id} = await createUserWithEmailAndPasswordAsync({email: values.email, fullName: values.fullName, password: values.password})
    console.log(`User created with ID ${id}`)
+   if(id){
+      router.replace('/dashboard')
+    }
   }
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>

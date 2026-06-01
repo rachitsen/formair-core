@@ -2,6 +2,7 @@
 
 import { cn } from "~/lib/utils"
 import { Button } from "~/components/ui/button"
+import {useRouter} from "next/navigation"
 import {
   Card,
   CardContent,
@@ -18,6 +19,7 @@ import {
 import { Input } from "~/components/ui/input"
 import { useForm } from "react-hook-form"
 import { useSignIn } from "~/hooks/api/auth"
+import { router } from "@repo/trpc/server/trpc"
 
 export function LoginForm({
   className,
@@ -25,13 +27,16 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const {signinUserWithEmailAndPasswordAsync}= useSignIn();
   const { register, handleSubmit } = useForm<{ email: string; password: string }>()
-
+  const router = useRouter();
   const onSubmit = handleSubmit(async (data) => {
     console.log("Login form submitted:", data)
    const {id} = await signinUserWithEmailAndPasswordAsync({
       email: data.email,
       password: data.password
     })
+    if(id){
+      router.replace('/dashboard')
+    }
   })
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>

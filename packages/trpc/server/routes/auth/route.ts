@@ -1,9 +1,9 @@
 import { signinUserWithEmailAndPasswordInput } from "@repo/services/user/model"
 import { userService } from "../../services"
 import {publicProcedure, router} from "../../trpc"
-import { setAuthenticationToken } from "../../utils/cookie"
+import { getAuthenticationToken, setAuthenticationToken } from "../../utils/cookie"
 import {generatePath} from "../../utils/path-generator"
-import { createUserWithEmailAndPasswordInput, createUserWithEmailAndPasswordOutput, signinWithEmailAndPasswordInputModel, signinWithEmailAndPasswordOutputModel } from "./model"
+import { createUserWithEmailAndPasswordInput, createUserWithEmailAndPasswordOutput, getLoggedInUserInfoInputModel, getLoggedInUserInfoOutputModel, signinWithEmailAndPasswordInputModel, signinWithEmailAndPasswordOutputModel } from "./model"
 
 const TAGS = ["Authentication"]
 const getPath = generatePath("/authentication")
@@ -45,5 +45,31 @@ export const authRouter = router({
         return {
             id
         }
-    })
+    }),
+
+    getLoggedInUserInfo: publicProcedure
+      .meta({
+        openapi:{
+            method: 'POST',
+            path: getPath('/getLoggedInUserInfo'),
+            tags: TAGS
+        }
+        
+      })
+      .input(getLoggedInUserInfoInputModel)
+      .output(getLoggedInUserInfoOutputModel).query(async({ctx}) =>{
+    const userToken = getAuthenticationToken(ctx);
+    if(!userToken){
+        throw new Error("Unauthorized")
+    }
+
+    const {id, email, fullName, profileImageUrl} = await userService.verifyAndDecodeUserToken(userToken);
+    return {
+        id,
+        email,
+        fullName,
+        profileImageUrl
+    }
+ })
+
 })
