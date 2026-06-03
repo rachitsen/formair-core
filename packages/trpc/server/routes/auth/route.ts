@@ -13,7 +13,7 @@ export const authRouter = router({
         openapi: {
             method: 'POST',
             path: getPath('/createUserWithEmailAndPassword'),
-            tags: TAGS,
+            tags: TAGS
         }, 
     }).input(createUserWithEmailAndPasswordInput).output(createUserWithEmailAndPasswordOutput)
     .mutation( async ({input, ctx})=>{
@@ -30,7 +30,7 @@ export const authRouter = router({
         openapi:{
             method: 'POST',
             path: getPath('/signinWithEmailAndPassword'),
-            tags: TAGS
+            tags: TAGS,
         }
     })
     .input(signinWithEmailAndPasswordInputModel)
@@ -52,7 +52,8 @@ export const authRouter = router({
         openapi:{
             method: 'POST',
             path: getPath('/getLoggedInUserInfo'),
-            tags: TAGS
+            tags: TAGS,
+            protect: true
         }
         
       })
@@ -67,5 +68,4 @@ export const authRouter = router({
         profileImageUrl
     }
  })
-
 })
