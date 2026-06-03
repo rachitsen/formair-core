@@ -58,12 +58,8 @@ export const authRouter = router({
       })
       .input(getLoggedInUserInfoInputModel)
       .output(getLoggedInUserInfoOutputModel).query(async({ctx}) =>{
-    const userToken = getAuthenticationToken(ctx);
-    if(!userToken){
-        throw new Error("Unauthorized")
-    }
 
-    const {id, email, fullName, profileImageUrl} = await userService.verifyAndDecodeUserToken(userToken);
+    const {id, email, fullName, profileImageUrl} = await userService.getUserInfoById(ctx.user!.id);
     return {
         id,
         email,
