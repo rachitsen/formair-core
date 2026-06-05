@@ -1,7 +1,12 @@
 import { authenticatedProcedure, router } from "../../trpc"
 import { generatePath } from "../../utils/path-generator"
-import { createFormInputModel, createFormOutputModel, listFormsOutputModel } from "./model"
-import { formService } from "../../services"
+import { createFormInputModel, createFormOutputModel, listFormsOutputModel, 
+	createFieldInputModel, createFieldOutputModel,
+    updateFieldInputModel, updateFieldOutputModel,
+    deleteFieldInputModel, deleteFieldOutputModel,
+    getFieldsInputModel, getFieldsOutputModel,
+} from "./model"
+import { formService, formFieldService } from "../../services"
 import { z } from "zod"
 const TAGS = ["Form"]
 const getPath = generatePath("/form")
@@ -42,5 +47,61 @@ export const formRouter = router({
 		.query(async ({ ctx }) => {
 			const forms = formService.listFormsByUserId({ userId: ctx.user.id })
 			return forms
-		})
+		}),
+
+	getFields: authenticatedProcedure.meta({
+		openapi: {
+			method: "POST",
+			path: getPath("/getFields"),
+			tags: TAGS,
+			protect: true
+		},
+	}).input(getFieldsInputModel)
+	.output(getFieldsOutputModel)
+	.query(async ({input}) => {
+		return formFieldService.getFields({formId: input.formId})
+	}),
+	createField: authenticatedProcedure.meta({
+		openapi: {
+			method: "POST",
+			path: getPath("/createField"),
+			tags: TAGS,
+			protect: true
+		},
+	}
+	)
+	.input(createFieldInputModel)
+	.output(createFieldOutputModel)
+	.mutation( async ({input}) => {
+		return formFieldService.createField(input)
+	}),
+
+	updateField: authenticatedProcedure.meta({
+		openapi: {
+			method: "POST",
+			path: getPath("/updateField"),
+			tags: TAGS,
+			protect: true
+		},
+	}
+	)
+	.input(updateFieldInputModel)
+	.output(updateFieldOutputModel)
+	.mutation( async ({input}) => {
+		return formFieldService.updateField(input)
+	}),
+
+	deleteField: authenticatedProcedure.meta({
+        openapi: {
+            method: 'POST',
+            path: getPath('/deleteField'),
+            tags: TAGS,
+            protect: true,
+        }
+    })
+        .input(deleteFieldInputModel)
+        .output(deleteFieldOutputModel)
+        .mutation(async ({ input }) => {
+            return formFieldService.deleteField(input)
+        }),
 })
