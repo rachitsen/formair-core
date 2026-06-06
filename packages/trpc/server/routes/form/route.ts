@@ -1,10 +1,12 @@
-import { authenticatedProcedure, router } from "../../trpc"
+import { authenticatedProcedure, router, publicProcedure } from "../../trpc"
 import { generatePath } from "../../utils/path-generator"
 import { createFormInputModel, createFormOutputModel, listFormsOutputModel, 
 	createFieldInputModel, createFieldOutputModel,
     updateFieldInputModel, updateFieldOutputModel,
     deleteFieldInputModel, deleteFieldOutputModel,
     getFieldsInputModel, getFieldsOutputModel,
+	getFormOutputModel,
+	getFormInputModel,
 } from "./model"
 import { formService, formFieldService } from "../../services"
 import { z } from "zod"
@@ -104,4 +106,15 @@ export const formRouter = router({
         .mutation(async ({ input }) => {
             return formFieldService.deleteField(input)
         }),
+
+		getForm: publicProcedure.meta({
+			openapi: {
+				method: 'POST',
+            	path: getPath('/getForm'),
+            	tags: TAGS,
+            	protect: true,
+			}
+		}).input(getFormInputModel).output(getFormOutputModel).query(async ({input}) => {
+			return formService.getFormById({formId: input.formId })
+		})
 })

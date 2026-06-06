@@ -1,4 +1,5 @@
 import {z} from "zod";
+import { getFieldInputType } from "../form-field/model";
 
 export const createFormInput = z.object({
     title: z.string().max(55).describe("Title of the form"),
@@ -14,3 +15,9 @@ export const listFormsByUserIdInput = z.object({
 })
 
 export type listFormsByUserIdInputType = z.infer<typeof listFormsByUserIdInput>
+
+export const getFormByIdInput = z.object({
+    formId:  z.string().uuid().describe('UUID of the form'),
+})
+
+export type getFormByIdInputType = z.infer<typeof getFormByIdInput>

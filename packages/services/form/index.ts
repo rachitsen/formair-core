@@ -1,6 +1,7 @@
-import {db, eq} from "@repo/database"
+import {db, eq, asc} from "@repo/database"
 import {formsTable} from "@repo/database/models/form"
-import { type createFormInputType, createFormInput, listFormsByUserIdInputType, listFormsByUserIdInput } from "./model"
+import {formsfieldsTable} from "@repo/database/models/form-fields"
+import { type createFormInputType, createFormInput, listFormsByUserIdInputType, listFormsByUserIdInput, getFormByIdInputType, getFormByIdInput } from "./model"
 
 class FormService {
 
@@ -26,6 +27,38 @@ class FormService {
             updatedAt: formsTable.updatedAt,
         }).from(formsTable).where(eq(formsTable.createdBy, userId))
         return forms
+    }
+
+    public async getFormById(payload: getFormByIdInputType){
+        const {formId} = await getFormByIdInput.parseAsync(payload)
+
+        const rows = await db.select({
+                id: formsTable.id,
+                title: formsTable.title,
+                description: formsTable.description,
+                createdAt: formsTable.createdAt,
+                updatedAt: formsTable.updatedAt,    
+                field: {
+                    id: formsfieldsTable.id,
+                    label: formsfieldsTable.label,
+                    labelKey: formsfieldsTable.labelKey,
+                    type: formsfieldsTable.type,
+                    description: formsfieldsTable.description,
+                    placeholder: formsfieldsTable.placeholder,
+                    isRequired: formsfieldsTable.isRequired,
+                    index: formsfieldsTable.index,                   
+                }
+        }).from(formsTable)
+          .leftJoin(formsfieldsTable, eq(formsfieldsTable.formId, formsTable.id))
+          .where(eq(formsTable.id, formId))
+          .orderBy(asc(formsfieldsTable.index))
+
+
+        const { id, title, description, createdAt, updatedAt } = rows[0]!
+        const fields = rows.filter(r => r.field?.id !== null)
+            .map(r => r.field as NonNullable<typeof r.field>)
+
+        return { id, title, description, createdAt, updatedAt, fields }
     }
 }
 
