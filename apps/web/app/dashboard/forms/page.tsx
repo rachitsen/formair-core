@@ -8,6 +8,7 @@ import {
   SidebarProvider,
 } from "~/components/ui/sidebar"
 import FormCreateModal from "~/components/form-create-modal"
+import FormBuilderClient from "~/components/form-builder-client"
 import { useListForms } from "~/hooks/api/form"
 
 export default function Page() {
@@ -87,17 +88,9 @@ export default function Page() {
                   ) : !forms || forms.length === 0 ? (
                     <p className="text-sm text-muted-foreground">No forms yet. Create one to get started.</p>
                   ) : selectedForm ? (
-                    // Form Builder replaces list entirely when selected
+                    // Render FormBuilder inline for selected form
                     <div className="mt-4">
-                      <div className="rounded-md border p-6">
-                        <h3 className="text-lg font-semibold">{selectedForm.title}</h3>
-                        {selectedForm.description ? (
-                          <p className="text-sm text-muted-foreground mt-2">{selectedForm.description}</p>
-                        ) : (
-                          <p className="text-sm text-muted-foreground mt-2">No description</p>
-                        )}
-                        {/* rest intentionally empty for now */}
-                      </div>
+                      <FormBuilderClient id={selectedForm.id} />
                     </div>
                   ) : (
                     // List view (default)

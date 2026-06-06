@@ -3,8 +3,8 @@ import { SiteHeader } from "~/components/site-header"
 import { SidebarInset, SidebarProvider } from "~/components/ui/sidebar"
 import FormBuilderClient from "~/components/form-builder-client"
 
-export default function FormPage({ params }: { params: { id: string } }) {
-  const { id } = params
+export default async function FormPage({ params }: { params: { id: string } | Promise<{ id: string }> }) {
+  const { id } = await params
 
   return (
     <SidebarProvider
