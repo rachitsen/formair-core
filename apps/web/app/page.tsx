@@ -1,27 +1,24 @@
-'use client';
-import { useRouter } from "next/navigation";
+"use client";
+
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useUser } from "~/hooks/api/auth";
-import { trpc } from "~/trpc/client";
 
 export default function Home() {
-  const {user} = useUser();
+  const { user } = useUser();
   const router = useRouter();
 
-  useEffect(() =>{
-    if(user && user.id){
-        router.replace('/dashboard')
+  useEffect(() => {
+    if (user && user.id) {
+      router.replace("/dashboard");
+    } else {
+      router.replace("/login");
     }
-    else{
-      router.replace('/login')
-    }
-  },[user, router])
+  }, [user, router]);
+
   return (
     <main className="min-h-screen min-w-screen flex justify-center items-center">
-      <div>
-        <h1 className="text-3xl">Streamyst - Stream in Style</h1>
-        <h2>Server message: {JSON.stringify(user)}</h2>
-      </div>
+      <div>{JSON.stringify(user, null, 2)}</div>
     </main>
   );
 }

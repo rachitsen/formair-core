@@ -1,129 +1,157 @@
-"use client"
+"use client";
 
-import React, { useEffect, useState } from "react"
-import { AppSidebar } from "~/components/app-sidebar"
-import { SiteHeader } from "~/components/site-header"
+import { useState } from "react";
+import { useForm, type SubmitHandler } from "react-hook-form";
+import Link from "next/link";
+import { PencilIcon } from "lucide-react";
+import { Button } from "~/components/ui/button";
 import {
-  SidebarInset,
-  SidebarProvider,
-} from "~/components/ui/sidebar"
-import FormCreateModal from "~/components/form-create-modal"
-import FormBuilderClient from "~/components/form-builder-client"
-import { useListForms } from "~/hooks/api/form"
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "~/components/ui/dialog";
+import { Field, FieldGroup, FieldLabel } from "~/components/ui/field";
+import { Input } from "~/components/ui/input";
+import { Textarea } from "~/components/ui/textarea";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table";
+import { useCreateForm, useListForms } from "~/hooks/api/form";
 
-export default function Page() {
-  const { forms, isLoading, isFetching } = useListForms()
-  const formatDate = (v: any) => {
-    if (!v) return ""
-    if (v instanceof Date) return v.toLocaleDateString()
-    try {
-      return new Date(v).toLocaleDateString()
-    } catch {
-      return ""
-    }
-  }
-  const [selectedForm, setSelectedForm] = useState<typeof forms extends (infer U)[] ? U : any | null>(null)
+type CreateFormValues = {
+  title: string;
+  description: string;
+};
 
-  useEffect(() => {
-    // if URL contains an id, try to select it from loaded forms
-    if (!forms || forms.length === 0) return
-    try {
-      const pathname = typeof window !== "undefined" ? window.location.pathname : ""
-      // if path ends with /dashboard/forms or /dashboard/forms/ clear selection
-      if (pathname === "/dashboard/forms" || pathname === "/dashboard/forms/") {
-        setSelectedForm(null)
-        return
-      }
-      const parts = pathname.split("/")
-      const id = parts.length ? parts[parts.length - 1] : null
-      if (id) {
-        const found = forms.find((f: any) => f.id === id)
-        if (found) setSelectedForm(found)
-      }
-    } catch {
-      // ignore
-    }
-  }, [forms])
+export default function FormsPage() {
+  const [open, setOpen] = useState(false);
+  const { createFormAsync, isError, error } = useCreateForm();
+  const { forms, isLoading } = useListForms();
 
-  const handleSelect = (form: any) => {
-    setSelectedForm(form)
-    if (typeof window !== "undefined") {
-      // update URL without triggering a Next navigation
-      try {
-        window.history.pushState({}, "", `/dashboard/forms/${form.id}`)
-      } catch {
-        // ignore
-      }
-    }
-  }
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<CreateFormValues>({
+    defaultValues: { title: "", description: "" },
+  });
+
+  const onSubmit: SubmitHandler<CreateFormValues> = async (values) => {
+    await createFormAsync({
+      title: values.title,
+      description: values.description || undefined,
+    });
+    reset();
+    setOpen(false);
+  };
+
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
-    >
-      <AppSidebar variant="inset" />
-      <SidebarInset>
-        <SiteHeader />
+    <div className="p-6 flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Forms</h1>
+        <Button onClick={() => setOpen(true)}>Create Form</Button>
+      </div>
 
-        <div className="flex flex-1 gap-4">
-          {/* Main column */}
-          <div className="flex-1 flex flex-col">
-            <div className="@container/main flex flex-1 flex-col gap-2">
-              <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-                <div className="px-4 lg:px-6 flex items-center justify-between">
-                  <div>
-                    <h2 className="text-lg font-semibold">{selectedForm ? "Form Builder" : "Forms"}</h2>
-                    <p className="text-sm text-muted-foreground">{selectedForm ? "" : "List of forms will appear here."}</p>
-                  </div>
-                  <FormCreateModal />
-                </div>
+      <div className="rounded-lg border overflow-hidden">
+        <Table>
+          <TableHeader className="bg-muted">
+            <TableRow>
+              <TableHead>Title</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Created</TableHead>
+              <TableHead className="w-16" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                  Loading...
+                </TableCell>
+              </TableRow>
+            ) : !forms || forms.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                  No forms yet. Create your first one.
+                </TableCell>
+              </TableRow>
+            ) : (
+              forms.map((form) => (
+                <TableRow key={form.id}>
+                  <TableCell className="font-medium">{form.title}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {form.description ?? "—"}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {form.createdAt ? new Date(form.createdAt).toLocaleDateString() : "—"}
+                  </TableCell>
+                  <TableCell>
+                    <Button variant="ghost" size="icon" asChild>
+                      <Link href={`/dashboard/forms/${form.id}`}>
+                        <PencilIcon className="size-4" />
+                        <span className="sr-only">Edit {form.title}</span>
+                      </Link>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
-                <div className="px-4 lg:px-6">
-                  {isLoading ? (
-                    <p className="text-sm text-muted-foreground">Loading forms...</p>
-                  ) : !forms || forms.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No forms yet. Create one to get started.</p>
-                  ) : selectedForm ? (
-                    // Render FormBuilder inline for selected form
-                    <div className="mt-4">
-                      <FormBuilderClient id={selectedForm.id} />
-                    </div>
-                  ) : (
-                    // List view (default)
-                    <ul className="mt-4 space-y-3">
-                      {forms.map((form) => (
-                        <li
-                          key={form.id}
-                          className={`rounded-md border p-3 hover:shadow-sm ${selectedForm?.id === form.id ? "bg-muted" : ""}`}
-                        >
-                          <button
-                            onClick={() => handleSelect(form)}
-                            className="w-full text-left block"
-                          >
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="font-medium">{form.title}</p>
-                                {form.description ? (
-                                  <p className="text-sm text-muted-foreground">{form.description}</p>
-                                ) : null}
-                              </div>
-                              <div className="text-sm text-muted-foreground">{formatDate(form.createdAt)}</div>
-                            </div>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
-  )
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create a new form</DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="title">Title</FieldLabel>
+                <Input
+                  id="title"
+                  placeholder="e.g. Customer Feedback"
+                  {...register("title", { required: true, maxLength: 55 })}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="description">Description</FieldLabel>
+                <Textarea
+                  id="description"
+                  placeholder="What is this form for? (optional)"
+                  {...register("description", { maxLength: 300 })}
+                />
+              </Field>
+              {isError && (
+                <p className="text-sm text-destructive">{error?.message}</p>
+              )}
+            </FieldGroup>
+
+            <DialogFooter className="mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => { reset(); setOpen(false); }}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Creating..." : "Create Form"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 }
