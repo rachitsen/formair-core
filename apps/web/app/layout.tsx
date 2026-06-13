@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import "./globals.css";
+import "./globals.css"
+
 import { GlobalProviders } from "~/providers/global";
 
 const geistSans = localFont({
@@ -11,12 +12,10 @@ const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
 });
-
 export const metadata: Metadata = {
   title: "Streamyst",
   description: "Media Forwarding",
 };
-
 export default function RootLayout({
   children,
 }: Readonly<{
